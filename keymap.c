@@ -11,187 +11,308 @@ enum custom_keycodes {
 bool jiggle_macro = false;
 bool turbo_macro = false;
 
-enum my_layers {
-    _QWERTY, // 0
-    _FN, // 1
-    _SYM, // 2
-    _NAV, // 3
-    _MOUSE, // 4
-    _MEDIA, // 5
-    _GAMING, // 6
-    _MACRO, // 7
+enum iris_layers {
+    _QWERTY,
+    _NUM,
+    _SYM_NAV,
+    _MEDIA_MOUSE,
+    _GAMING,
+    _MACRO,
 };
 
-#define LAYER_CYCLE_START 0
-#define LAYER_CYCLE_END  7
+// Layer Aliases
+#define QWERTY_LAYER _QWERTY
+#define NUM_LAYER _NUM
+#define SYM_NAV_LAYER _SYM_NAV
+#define MEDIA_MOUSE_LAYER _MEDIA_MOUSE
+#define GAMING_LAYER _GAMING
+#define MACRO_LAYER _MACRO
 
-// SYM
-#define LGU_GRV LGUI_T(KC_GRV)
-#define LSF_QT LSFT_T(KC_QUOT)
-#define RSF_MIN RSFT_T(KC_MINS)
-#define RGU_EQL RGUI_T(KC_EQL)
+// Transparent key for readability
+#define _______ KC_TRNS
 
-// MISC
-#define KC_CAPW LGUI(LSFT(KC_3)) // capture the whole screen on MacOS
-#define KC_CAPP LGUI(LSFT(KC_5)) // capture portion of the screen on MacOS
+// Layer toggling and momentary keys
+#define TO_QW TO(QWERTY_LAYER)
+#define TO_NU TO(NUM_LAYER)
+#define TO_SN TO(SYM_NAV_LAYER)
+#define TO_MM TO(MEDIA_MOUSE_LAYER)
+#define TO_GM TO(GAMING_LAYER)
+#define TO_MA TO(MACRO_LAYER)
+
+#define MO_NU MO(NUM_LAYER)
+#define MO_SN MO(SYM_NAV_LAYER)
+#define MO_MM MO(MEDIA_MOUSE_LAYER)
+#define MO_GM MO(GAMING_LAYER)
+#define MO_MA MO(MACRO_LAYER)
+
+// MACROS
+#define KC_MACW LGUI(LSFT(KC_3)) // capture the whole screen on MacOS
+#define KC_MACP LGUI(LSFT(KC_5)) // capture portion of the screen on MacOS
 #define GUI_DWN LGUI(KC_DOWN) // jump to the bottom of the document
 #define GUI_UP LGUI(KC_UP) // jump to the top of the document
 
-// LAYERS
-#define MO_FN MO(_FN)
-#define MO_NAV MO(_NAV)
-#define MO_SYM MO(_SYM)
-#define MO_MS MO(_MOUSE)
-#define MO_MAC MO(_MACRO)
-#define TO_QW TO(_QWERTY)
-#define TO_FN TO(_FN)
-#define TO_NAV TO(_NAV)
-#define TO_SYM TO(_SYM)
-#define TO_MS TO(_MOUSE)
-#define TO_MED TO(_MEDIA)
-#define TO_GAM TO(_GAMING)
-#define TO_MAC TO(_MACRO)
-#define FN_LBRC LT(_FN, KC_LBRC)
-#define MS_RBRC LT(_MOUSE, KC_RBRC)
-
 // Tap dance declarations
-enum {
-    LSCL, // left shift or caps lock
-    TESC, // tilde or escape
-    RAAL,
-    LACL,
-    AGUI,
-    FNDN,
-    MSUP,
+enum tap_dance_codes {
+    TD_LSFT_CAPS, // Left Shift or Caps Lock
+    TD_GRV_ESC,   // Grave or Escape
+    TD_RALT_ENT,  // Right Alt or Enter
+    TD_LCTL_ESC,  // Left Control or Escape
+    TD_LSPC,      // Left GUI or Space
+    TD_1_L1,      // 1 tap, double-hold to switch to NUM layer
+    TD_2_L2,      // 2 tap, double-hold to switch to SYM_NAV layer
+    TD_3_L3,      // 3 tap, double-hold to switch to MEDIA_MOUSE layer
+    TD_4_L4,      // 4 tap, double-hold to switch to GAMING layer
+    TD_5_L5,      // 5 tap, double-hold to switch to MACRO layer
 };
 
+// Helper functions for advanced tap dance
+typedef struct {
+    bool is_press_action;
+    uint8_t step;
+} tap_state_t;
+
+enum {
+    SINGLE_TAP = 1,
+    SINGLE_HOLD,
+    DOUBLE_TAP,
+    DOUBLE_HOLD,
+    DOUBLE_SINGLE_TAP,
+    MORE_TAPS
+};
+
+static tap_state_t tap_state[10];
+
+uint8_t get_tap_dance_step(tap_dance_state_t *state);
+
+uint8_t get_tap_dance_step(tap_dance_state_t *state) {
+    if (state->count == 1) {
+        if (state->interrupted || !state->pressed) return SINGLE_TAP;
+        else return SINGLE_HOLD;
+    } else if (state->count == 2) {
+        if (state->interrupted) return DOUBLE_SINGLE_TAP;
+        else if (state->pressed) return DOUBLE_HOLD;
+        else return DOUBLE_TAP;
+    }
+    return MORE_TAPS;
+}
+
+// Tap dance for number 1 - tap for 1, double-hold for NUM layer
+void dance_1_finished(tap_dance_state_t *state, void *user_data);
+void dance_1_reset(tap_dance_state_t *state, void *user_data);
+
+void dance_1_finished(tap_dance_state_t *state, void *user_data) {
+    tap_state[0].step = get_tap_dance_step(state);
+    switch (tap_state[0].step) {
+        case SINGLE_TAP: register_code16(KC_1); break;
+        case DOUBLE_TAP: register_code16(KC_1); register_code16(KC_1); break;
+        case DOUBLE_HOLD: layer_move(NUM_LAYER); break;
+        case DOUBLE_SINGLE_TAP: tap_code16(KC_1); register_code16(KC_1); break;
+    }
+}
+
+void dance_1_reset(tap_dance_state_t *state, void *user_data) {
+    wait_ms(10);
+    switch (tap_state[0].step) {
+        case SINGLE_TAP: unregister_code16(KC_1); break;
+        case DOUBLE_TAP: unregister_code16(KC_1); break;
+        case DOUBLE_SINGLE_TAP: unregister_code16(KC_1); break;
+    }
+    tap_state[0].step = 0;
+}
+
+// Tap dance for number 2 - tap for 2, double-hold for SYM_NAV layer
+void dance_2_finished(tap_dance_state_t *state, void *user_data);
+void dance_2_reset(tap_dance_state_t *state, void *user_data);
+
+void dance_2_finished(tap_dance_state_t *state, void *user_data) {
+    tap_state[1].step = get_tap_dance_step(state);
+    switch (tap_state[1].step) {
+        case SINGLE_TAP: register_code16(KC_2); break;
+        case DOUBLE_TAP: register_code16(KC_2); register_code16(KC_2); break;
+        case DOUBLE_HOLD: layer_move(SYM_NAV_LAYER); break;
+        case DOUBLE_SINGLE_TAP: tap_code16(KC_2); register_code16(KC_2); break;
+    }
+}
+
+void dance_2_reset(tap_dance_state_t *state, void *user_data) {
+    wait_ms(10);
+    switch (tap_state[1].step) {
+        case SINGLE_TAP: unregister_code16(KC_2); break;
+        case DOUBLE_TAP: unregister_code16(KC_2); break;
+        case DOUBLE_SINGLE_TAP: unregister_code16(KC_2); break;
+    }
+    tap_state[1].step = 0;
+}
+
+// Tap dance for number 3 - tap for 3, double-hold for MEDIA_MOUSE layer
+void dance_3_finished(tap_dance_state_t *state, void *user_data);
+void dance_3_reset(tap_dance_state_t *state, void *user_data);
+
+void dance_3_finished(tap_dance_state_t *state, void *user_data) {
+    tap_state[2].step = get_tap_dance_step(state);
+    switch (tap_state[2].step) {
+        case SINGLE_TAP: register_code16(KC_3); break;
+        case DOUBLE_TAP: register_code16(KC_3); register_code16(KC_3); break;
+        case DOUBLE_HOLD: layer_move(MEDIA_MOUSE_LAYER); break;
+        case DOUBLE_SINGLE_TAP: tap_code16(KC_3); register_code16(KC_3); break;
+    }
+}
+
+void dance_3_reset(tap_dance_state_t *state, void *user_data) {
+    wait_ms(10);
+    switch (tap_state[2].step) {
+        case SINGLE_TAP: unregister_code16(KC_3); break;
+        case DOUBLE_TAP: unregister_code16(KC_3); break;
+        case DOUBLE_SINGLE_TAP: unregister_code16(KC_3); break;
+    }
+    tap_state[2].step = 0;
+}
+
+// Tap dance for number 4 - tap for 4, double-hold for GAMING layer
+void dance_4_finished(tap_dance_state_t *state, void *user_data);
+void dance_4_reset(tap_dance_state_t *state, void *user_data);
+
+void dance_4_finished(tap_dance_state_t *state, void *user_data) {
+    tap_state[3].step = get_tap_dance_step(state);
+    switch (tap_state[3].step) {
+        case SINGLE_TAP: register_code16(KC_4); break;
+        case DOUBLE_TAP: register_code16(KC_4); register_code16(KC_4); break;
+        case DOUBLE_HOLD: layer_move(GAMING_LAYER); break;
+        case DOUBLE_SINGLE_TAP: tap_code16(KC_4); register_code16(KC_4); break;
+    }
+}
+
+void dance_4_reset(tap_dance_state_t *state, void *user_data) {
+    wait_ms(10);
+    switch (tap_state[3].step) {
+        case SINGLE_TAP: unregister_code16(KC_4); break;
+        case DOUBLE_TAP: unregister_code16(KC_4); break;
+        case DOUBLE_SINGLE_TAP: unregister_code16(KC_4); break;
+    }
+    tap_state[3].step = 0;
+}
+
+// Tap dance for number 5 - tap for 5, double-hold for MACRO layer
+void dance_5_finished(tap_dance_state_t *state, void *user_data);
+void dance_5_reset(tap_dance_state_t *state, void *user_data);
+
+void dance_5_finished(tap_dance_state_t *state, void *user_data) {
+    tap_state[4].step = get_tap_dance_step(state);
+    switch (tap_state[4].step) {
+        case SINGLE_TAP: register_code16(KC_5); break;
+        case DOUBLE_TAP: register_code16(KC_5); register_code16(KC_5); break;
+        case DOUBLE_HOLD: layer_move(MACRO_LAYER); break;
+        case DOUBLE_SINGLE_TAP: tap_code16(KC_5); register_code16(KC_5); break;
+    }
+}
+
+void dance_5_reset(tap_dance_state_t *state, void *user_data) {
+    wait_ms(10);
+    switch (tap_state[4].step) {
+        case SINGLE_TAP: unregister_code16(KC_5); break;
+        case DOUBLE_TAP: unregister_code16(KC_5); break;
+        case DOUBLE_SINGLE_TAP: unregister_code16(KC_5); break;
+    }
+    tap_state[4].step = 0;
+}
+
 tap_dance_action_t tap_dance_actions[] = {
-    // Shift --> caps lock
-    [LSCL] = ACTION_TAP_DANCE_DOUBLE(KC_LSFT, KC_CAPS),
-    // Tilde --> escape
-    [TESC] = ACTION_TAP_DANCE_DOUBLE(KC_GRV, KC_ESC),
-    // Right alt --> left alt
-    [RAAL] = ACTION_TAP_DANCE_DOUBLE(KC_RALT, KC_LALT),
-    // Left ctrl --> right ctrl
-    [LACL] = ACTION_TAP_DANCE_DOUBLE(KC_LCTL, KC_RCTL),
-    // KC_LGUI --> KC_RGUI
-    [AGUI] = ACTION_TAP_DANCE_DOUBLE(KC_LGUI, KC_RGUI),
+    [TD_LSFT_CAPS] = ACTION_TAP_DANCE_DOUBLE(KC_LSFT, KC_CAPS),
+    [TD_GRV_ESC]   = ACTION_TAP_DANCE_DOUBLE(KC_GRV, KC_ESC),
+    [TD_RALT_ENT]  = ACTION_TAP_DANCE_DOUBLE(KC_RALT, KC_ENT),
+    [TD_LCTL_ESC]  = ACTION_TAP_DANCE_DOUBLE(KC_LCTL, KC_ESC),
+    [TD_LSPC]      = ACTION_TAP_DANCE_DOUBLE(KC_LGUI, KC_SPC),
+    [TD_1_L1]      = ACTION_TAP_DANCE_FN_ADVANCED(NULL, dance_1_finished, dance_1_reset),
+    [TD_2_L2]      = ACTION_TAP_DANCE_FN_ADVANCED(NULL, dance_2_finished, dance_2_reset),
+    [TD_3_L3]      = ACTION_TAP_DANCE_FN_ADVANCED(NULL, dance_3_finished, dance_3_reset),
+    [TD_4_L4]      = ACTION_TAP_DANCE_FN_ADVANCED(NULL, dance_4_finished, dance_4_reset),
+    [TD_5_L5]      = ACTION_TAP_DANCE_FN_ADVANCED(NULL, dance_5_finished, dance_5_reset),
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-
-    [_QWERTY] = LAYOUT(
-    //┌────────┬────────┬────────┬────────┬────────┬────────┐                          ┌────────┬────────┬────────┬────────┬────────┬────────┐
-       TD(TESC),    KC_1,    KC_2,    KC_3,    KC_4,    KC_5,                               KC_6,    KC_7,    KC_8,    KC_9,    KC_0, KC_BSPC,
-    //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
-         KC_TAB,    KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,                               KC_Y,    KC_U,    KC_I,    KC_O,    KC_P, KC_BSLS,
-    //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
-       TD(LSCL),    KC_A,    KC_S,    KC_D,    KC_F,    KC_G,                               KC_H,    KC_J,    KC_K,    KC_L,    KC_N, KC_QUOT,
-    //├────────┼────────┼────────┼────────┼────────┼────────┼────────┐        ┌────────┼────────┼────────┼────────┼────────┼────────┼────────┤
-       TD(LACL),    KC_Z,    KC_X,    KC_C,    KC_V,    KC_B, FN_LBRC,          MS_RBRC,    KC_N,    KC_M, KC_COMM,  KC_DOT, KC_SLSH,  KC_ENT,
-    //└────────┴────────┴────────┴───┬────┴───┬────┴───┬────┴───┬────┘        └───┬────┴───┬────┴───┬────┴───┬────┴────────┴────────┴────────┘
-                                      TD(AGUI),  TO_MAC,  KC_SPC,                    KC_SPC,   TO_FN,TD(RAAL)
-    //                               └────────┴────────┴────────┘                 └────────┴────────┴────────┘
+    [QWERTY_LAYER] = LAYOUT(
+    //┌───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────┐                                        ┌───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────┐
+       TD(TD_GRV_ESC),   TD(TD_1_L1),    TD(TD_2_L2),    TD(TD_3_L3),    TD(TD_4_L4),    TD(TD_5_L5),                                             KC_6,           KC_7,           KC_8,           KC_9,           KC_0,           KC_BSPC,
+    //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤                                        ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
+       KC_TAB,           KC_Q,           KC_W,           KC_E,           KC_R,           KC_T,                                                    KC_Y,           KC_U,           KC_I,           KC_O,           KC_P,           KC_BSLS,
+    //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤                                        ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
+       TD(TD_LSFT_CAPS), KC_A,           KC_S,           KC_D,           KC_F,           KC_G,                                                    KC_H,           KC_J,           KC_K,           KC_L,           KC_SCLN,        KC_QUOT,
+    //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┐        ┌───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
+       TD(TD_LCTL_ESC),  KC_Z,           KC_X,           KC_C,           KC_V,           KC_B,           KC_LBRC,                 KC_RBRC,        KC_N,           KC_M,           KC_COMM,        KC_DOT,         KC_SLSH,      TD(TD_RALT_ENT),
+    //└───────────────┴───────────────┴───────────────┴───────────────┼───────────────┼───────────────┼───────────────┘        └───────────────┼───────────────┼───────────────┼───────────────┴───────────────┴───────────────┴───────────────┘
+                                                                         MO_SN,          TD(TD_LSPC),    KC_SPC,                  KC_SPC,         MO_NU,          TO_MA
+    //                                                                └───────────────┴───────────────┴───────────────┘        └───────────────┴───────────────┴───────────────┘
     ),
 
-    [_FN] = LAYOUT(
-    //┌────────┬────────┬────────┬────────┬────────┬────────┐                          ┌────────┬────────┬────────┬────────┬────────┬────────┐
-        _______, _______,    KC_1,    KC_2,    KC_3, KC_PPLS,                            _______, _______, _______, _______, KC_MINS,  KC_EQL,
-    //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
-        _______, _______,    KC_4,    KC_5,    KC_6, KC_PCMM,                            KC_PGUP, KC_HOME,   KC_UP,  KC_END,  KC_DEL, KC_PSCR,
-    //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
-        _______, _______,    KC_7,    KC_8,    KC_9, KC_PEQL,                            KC_PGDN, KC_LEFT, KC_DOWN, KC_RGHT,  KC_INS, _______,
-    //├────────┼────────┼────────┼────────┼────────┼────────┼────────┐        ┌────────┼────────┼────────┼────────┼────────┼────────┼────────┤
-        _______, _______,    KC_0,    KC_0, KC_PDOT, KC_PENT, _______,          _______, _______, _______, _______, _______, _______, _______,
-    //└────────┴────────┴────────┴───┬────┴───┬────┴───┬────┴───┬────┘        └───┬────┴───┬────┴───┬────┴───┬────┴────────┴────────┴────────┘
-                                       _______,   TO_QW, _______,                   _______,  TO_SYM, _______
-    //                               └────────┴────────┴────────┘                 └────────┴────────┴────────┘
+    [NUM_LAYER] = LAYOUT(
+    //┌───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────┐                                        ┌───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────┐
+       KC_TRNS,          KC_F1,          KC_F2,          KC_F3,          KC_F4,          KC_F5,                                                   KC_F6,          KC_F7,          KC_F8,          KC_F9,          KC_F10,         KC_F11,
+    //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤                                        ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
+       KC_TRNS,          KC_TRNS,        KC_TRNS,        KC_MS_UP,       KC_TRNS,        KC_TRNS,                                                 KC_TRNS,        KC_7,           KC_8,           KC_9,           KC_PLUS,        KC_F12,
+    //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤                                        ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
+       KC_CAPS,          KC_TRNS,        KC_MS_LEFT,     KC_MS_DOWN,     KC_MS_RIGHT,    KC_TRNS,                                                 KC_TRNS,        KC_4,           KC_5,           KC_6,           KC_MINS,        KC_PAUS,
+    //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┐        ┌───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
+       KC_TRNS,          KC_TRNS,        KC_MS_BTN1,     KC_MS_BTN3,     KC_MS_BTN2,     KC_TRNS,        KC_TRNS,                 KC_TRNS,        KC_1,           KC_2,           KC_3,           KC_EQL,         KC_TRNS,        KC_TRNS,
+    //└───────────────┴───────────────┴───────────────┴───────────────┼───────────────┼───────────────┼───────────────┘        └───────────────┼───────────────┼───────────────┼───────────────┴───────────────┴───────────────┴───────────────┘
+                                                                         KC_TRNS,        KC_TRNS,        KC_0,                    KC_0,           KC_DOT,         KC_TRNS
+    //                                                                └───────────────┴───────────────┴───────────────┘        └───────────────┴───────────────┴───────────────┘
     ),
 
-    [_SYM] = LAYOUT(
-    //┌────────┬────────┬────────┬────────┬────────┬────────┐                          ┌────────┬────────┬────────┬────────┬────────┬────────┐
-        _______, _______, _______, _______, _______, _______,                            _______, _______, _______, _______, _______, _______,
-    //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
-        _______, KC_EXLM,   KC_AT, KC_HASH,  KC_DLR, KC_PERC,                            KC_CIRC, KC_AMPR, KC_ASTR, KC_PIPE, KC_BSLS, _______,
-    //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
-        _______, KC_LALT, KC_LCTL, LGU_GRV,  LSF_QT,  KC_DQT,                            KC_UNDS, RSF_MIN, RGU_EQL, KC_RCTL, KC_RALT, _______,
-    //├────────┼────────┼────────┼────────┼────────┼────────┼────────┐        ┌────────┼────────┼────────┼────────┼────────┼────────┼────────┤
-        _______, KC_LABK, KC_LPRN, KC_LCBR, KC_LBRC,KC_TILDE, _______,          _______, KC_PLUS, KC_RBRC, KC_RCBR, KC_RPRN, KC_RABK, _______,
-    //└────────┴────────┴────────┴───┬────┴───┬────┴───┬────┴───┬────┘        └───┬────┴───┬────┴───┬────┴───┬────┴────────┴────────┴────────┘
-                                       _______,   TO_FN, _______,                   _______,  TO_NAV, _______
-    //                               └────────┴────────┴────────┘                 └────────┴────────┴────────┘
+    [SYM_NAV_LAYER] = LAYOUT(
+    //┌───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────┐                                        ┌───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────┐
+       KC_TRNS,          KC_EXLM,        KC_AT,          KC_HASH,        KC_DLR,         KC_PERC,                                                 KC_CIRC,        KC_AMPR,        KC_ASTR,        KC_LPRN,        KC_RPRN,        KC_BSPC,
+    //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤                                        ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
+       KC_TRNS,          KC_TRNS,        KC_TRNS,        KC_UP,          KC_TRNS,        KC_TRNS,                                                 KC_PGUP,        KC_HOME,        KC_UP,          KC_END,         KC_PGDN,        KC_PSCR,
+    //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤                                        ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
+       KC_TRNS,          KC_TRNS,        KC_LEFT,        KC_DOWN,        KC_RIGHT,       KC_TRNS,                                                 KC_TRNS,        KC_LEFT,        KC_DOWN,        KC_RGHT,        KC_INS,         KC_DEL,
+    //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┐        ┌───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
+       KC_TRNS,          KC_TRNS,        KC_LCBR,        KC_RCBR,        KC_LBRC,        KC_RBRC,        KC_TRNS,                 KC_TRNS,        KC_MINS,        KC_EQL,         KC_SLSH,        KC_BSLS,        KC_QUOT,        KC_TRNS,
+    //└───────────────┴───────────────┴───────────────┴───────────────┼───────────────┼───────────────┼───────────────┘        └───────────────┼───────────────┼───────────────┼───────────────┴───────────────┴───────────────┴───────────────┘
+                                                                         TO_QW,          KC_TRNS,        KC_TRNS,                 KC_TRNS,        MO_MM,          KC_TRNS
+    //                                                                └───────────────┴───────────────┴───────────────┘        └───────────────┴───────────────┴───────────────┘
     ),
 
-    [_NAV] = LAYOUT(
-    //┌────────┬────────┬────────┬────────┬────────┬────────┐                          ┌────────┬────────┬────────┬────────┬────────┬────────┐
-        _______, _______, _______, _______, _______, _______,                            _______, _______, _______, _______, _______, _______,
-    //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
-        _______, _______, _______, _______, _______, _______,                            _______, KC_PGDN,   KC_UP, KC_PGUP, _______, _______,
-    //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
-        _______, KC_LALT, KC_LCTL, KC_LGUI, KC_LSFT, _______,                            KC_HOME, KC_LEFT, KC_DOWN,KC_RIGHT,  KC_END, _______,
-    //├────────┼────────┼────────┼────────┼────────┼────────┼────────┐        ┌────────┼────────┼────────┼────────┼────────┼────────┼────────┤
-        _______, _______, _______, _______, _______, _______, _______,          _______, _______, GUI_DWN, _______,  GUI_UP, _______, _______,
-    //└────────┴────────┴────────┴───┬────┴───┬────┴───┬────┴───┬────┘        └───┬────┴───┬────┴───┬────┴───┬────┴────────┴────────┴────────┘
-                                       _______,  TO_SYM, _______,                   _______,   TO_MS, _______
-    //                               └────────┴────────┴────────┘                 └────────┴────────┴────────┘
+    [MEDIA_MOUSE_LAYER] = LAYOUT(
+    //┌───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────┐                                        ┌───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────┐
+       KC_TRNS,          KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRNS,                                                 KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRNS,
+    //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤                                        ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
+       KC_TRNS,          KC_TRNS,        KC_TRNS,        KC_MS_UP,       KC_TRNS,        KC_TRNS,                                                 KC_TRNS,        KC_WH_U,        KC_MS_U,        KC_WH_D,        KC_TRNS,        KC_TRNS,
+    //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤                                        ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
+       KC_TRNS,          KC_TRNS,        KC_MS_LEFT,     KC_MS_DOWN,     KC_MS_RIGHT,    KC_TRNS,                                                 KC_TRNS,        KC_WH_L,        KC_MS_D,        KC_WH_R,        KC_TRNS,        KC_TRNS,
+    //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┐        ┌───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
+       KC_TRNS,          KC_TRNS,        KC_MS_BTN1,     KC_MS_BTN3,     KC_MS_BTN2,     KC_TRNS,        KC_TRNS,                 KC_TRNS,        KC_BTN1,        KC_BTN3,        KC_BTN2,        KC_TRNS,        KC_TRNS,        KC_TRNS,
+    //└───────────────┴───────────────┴───────────────┴───────────────┼───────────────┼───────────────┼───────────────┘        └───────────────┼───────────────┼───────────────┼───────────────┴───────────────┴───────────────┴───────────────┘
+                                                                         TO_SN,          KC_TRNS,        KC_TRNS,                 KC_TRNS,        TO_GM,          KC_TRNS
+    //                                                                └───────────────┴───────────────┴───────────────┘        └───────────────┴───────────────┴───────────────┘
     ),
 
-    [_MOUSE] = LAYOUT(
-    //┌────────┬────────┬────────┬────────┬────────┬────────┐                          ┌────────┬────────┬────────┬────────┬────────┬────────┐
-        _______, _______, _______, _______, _______, _______,                            _______, _______, _______, _______, _______, _______,
-    //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
-        _______, _______, _______, _______, _______, _______,                            _______, KC_WH_U, KC_MS_U, KC_WH_D, _______, _______,
-    //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
-        _______, KC_LALT, KC_LCTL, KC_LGUI, KC_LSFT, _______,                            KC_WH_R, KC_MS_L, KC_MS_D, KC_MS_R, KC_WH_L, _______,
-    //├────────┼────────┼────────┼────────┼────────┼────────┼────────┐        ┌────────┼────────┼────────┼────────┼────────┼────────┼────────┤
-        _______, _______, _______, _______, _______, _______, _______,          _______, _______, KC_BTN1, KC_BTN3, KC_BTN2, _______, _______,
-    //└────────┴────────┴────────┴───┬────┴───┬────┴───┬────┴───┬────┘        └───┬────┴───┬────┴───┬────┴───┬────┴────────┴────────┴────────┘
-                                       _______,  TO_NAV, _______,                   _______,  TO_MED, _______
-    //                               └────────┴────────┴────────┘                 └────────┴────────┴────────┘
+    [GAMING_LAYER] = LAYOUT(
+    //┌───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────┐                                        ┌───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────┐
+       KC_ESC,           KC_1,           KC_2,           KC_3,           KC_4,           KC_5,                                                    KC_6,           KC_7,           KC_8,           KC_9,           KC_0,           KC_BSPC,
+    //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤                                        ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
+       KC_TAB,           KC_Q,           KC_W,           KC_E,           KC_R,           KC_T,                                                    KC_Y,           KC_U,           KC_I,           KC_O,           KC_P,           KC_BSLS,
+    //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤                                        ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
+       KC_LSFT,          KC_A,           KC_S,           KC_D,           KC_F,           KC_G,                                                    KC_H,           KC_J,           KC_K,           KC_L,           KC_SCLN,        KC_QUOT,
+    //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┐        ┌───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
+       KC_LCTL,          KC_Z,           KC_X,           KC_C,           KC_V,           KC_B,           KC_LBRC,                 KC_RBRC,        KC_N,           KC_M,           KC_COMM,        KC_DOT,         KC_SLSH,        KC_ENT,
+    //└───────────────┴───────────────┴───────────────┴───────────────┼───────────────┼───────────────┼───────────────┘        └───────────────┼───────────────┼───────────────┼───────────────┴───────────────┴───────────────┴───────────────┘
+                                                                         KC_LGUI,        TO_MM,          KC_SPC,                  KC_SPC,         TO_MA,          KC_RALT
+    //                                                                └───────────────┴───────────────┴───────────────┘        └───────────────┴───────────────┴───────────────┘
     ),
 
-    [_MEDIA] = LAYOUT(
-    //┌────────┬────────┬────────┬────────┬────────┬────────┐                          ┌────────┬────────┬────────┬────────┬────────┬────────┐
-        _______, _______,   KC_F1,   KC_F2,   KC_F3, _______,                            _______, _______, _______, _______, _______, _______,
-    //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
-        _______, _______,   KC_F4,   KC_F5,   KC_F6, _______,                            _______, _______, _______, _______, _______, _______,
-    //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
-        _______, _______,   KC_F7,   KC_F8,   KC_F9, _______,                            _______, KC_BRIU, KC_VOLU, KC_MNXT, KC_MPLY, _______,
-    //├────────┼────────┼────────┼────────┼────────┼────────┼────────┐        ┌────────┼────────┼────────┼────────┼────────┼────────┼────────┤
-        _______, _______,  KC_F10,  KC_F11,  KC_F12, _______, _______,          _______, _______, KC_BRID, KC_VOLD, KC_MPRV, KC_MUTE, _______,
-    //└────────┴────────┴────────┴───┬────┴───┬────┴───┬────┴───┬────┘        └───┬────┴───┬────┴───┬────┴───┬────┴────────┴────────┴────────┘
-                                       _______,   TO_MS, _______,                   _______,  TO_GAM, _______
-    //                               └────────┴────────┴────────┘                 └────────┴────────┴────────┘
-    ),
-
-    [_GAMING] = LAYOUT(
-    //┌────────┬────────┬────────┬────────┬────────┬────────┐                          ┌────────┬────────┬────────┬────────┬────────┬────────┐
-         KC_ESC,    KC_1,    KC_2,    KC_3,    KC_4,    KC_5,                               KC_6,    KC_7,    KC_8,    KC_9,    KC_0, KC_BSPC,
-    //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
-         KC_TAB,    KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,                               KC_Y,    KC_U,    KC_I,    KC_O,    KC_P, KC_BSLS,
-    //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
-        KC_LSFT,    KC_A,    KC_S,    KC_D,    KC_F,    KC_G,                               KC_H,    KC_J,    KC_K,    KC_L,    KC_N, KC_QUOT,
-    //├────────┼────────┼────────┼────────┼────────┼────────┼────────┐        ┌────────┼────────┼────────┼────────┼────────┼────────┼────────┤
-        KC_LCTL,    KC_Z,    KC_X,    KC_C,    KC_V,    KC_B, KC_LBRC,          KC_RBRC,    KC_N,    KC_M, KC_COMM,  KC_DOT, KC_SLSH,  KC_ENT,
-    //└────────┴────────┴────────┴───┬────┴───┬────┴───┬────┴───┬────┘        └───┬────┴───┬────┴───┬────┴───┬────┴────────┴────────┴────────┘
-                                       KC_LGUI,  TO_MED,  KC_SPC,                    KC_SPC,  TO_MAC, KC_RALT
-    //                               └────────┴────────┴────────┘                 └────────┴────────┴────────┘
-    ),
-
-    [_MACRO] = LAYOUT(
-    //┌────────┬────────┬────────┬────────┬────────┬────────┐                          ┌────────┬────────┬────────┬────────┬────────┬────────┐
-        _______, _______, _______, _______, _______,   TURBO,                            _______, _______, _______, _______, QK_BOOT,  EE_CLR,
-    //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
-        _______, _______, _______, _______, _______, _______,                            _______, _______, _______, _______, _______, _______,
-    //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
-        _______, _______, _______, _______, _______, _______,                            _______, JIGGLER, _______, _______, _______, _______,
-    //├────────┼────────┼────────┼────────┼────────┼────────┼────────┐        ┌────────┼────────┼────────┼────────┼────────┼────────┼────────┤
-        _______, _______, _______, _______, _______, _______, _______,          _______, _______, _______, _______, _______, _______, _______,
-    //└────────┴────────┴────────┴───┬────┴───┬────┴───┬────┴───┬────┘        └───┬────┴───┬────┴───┬────┴───┬────┴────────┴────────┴────────┘
-                                       _______,  TO_GAM, _______,                   _______,   TO_QW, _______
-    //                               └────────┴────────┴────────┘                 └────────┴────────┴────────┘
-    ),
-
+    [MACRO_LAYER] = LAYOUT(
+    //┌───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────┐                                        ┌───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────┐
+       _______,          _______,        _______,        _______,        _______,        TURBO,                                                   _______,        _______,        _______,        _______,        QK_BOOT,        EE_CLR,
+    //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤                                        ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
+       _______,          _______,        _______,        _______,        _______,        _______,                                                 _______,        _______,        _______,        _______,        _______,        _______,
+    //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤                                        ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
+       _______,          _______,        _______,        _______,        _______,        _______,                                                 _______,        JIGGLER,        _______,        _______,        _______,        _______,
+    //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┐        ┌───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
+       _______,          _______,        _______,        _______,        _______,        _______,        _______,                 _______,        _______,        _______,        _______,        _______,        _______,        _______,
+    //└───────────────┴───────────────┴───────────────┴───────────────┼───────────────┼───────────────┼───────────────┘        └───────────────┼───────────────┼───────────────┼───────────────┴───────────────┴───────────────┴───────────────┘
+                                                                         _______,        TO_GM,          _______,                 _______,        TO_QW,          _______
+    //                                                                └───────────────┴───────────────┴───────────────┘        └───────────────┴───────────────┴───────────────┘
+    )
 };
 
 // --------------------------
@@ -413,13 +534,13 @@ layer_state_t default_layer_state_set_user(layer_state_t state) {
 }
 
 layer_state_t layer_state_set_user(layer_state_t state) {
-    rgblight_set_layer_state(_FN, layer_state_cmp(state, _FN));
-    rgblight_set_layer_state(_SYM, layer_state_cmp(state, _SYM));
-    rgblight_set_layer_state(_NAV, layer_state_cmp(state, _NAV));
-    rgblight_set_layer_state(_MOUSE, layer_state_cmp(state, _MOUSE));
-    rgblight_set_layer_state(_MEDIA, layer_state_cmp(state, _MEDIA));
-    rgblight_set_layer_state(_GAMING, layer_state_cmp(state, _GAMING));
-    rgblight_set_layer_state(_MACRO, layer_state_cmp(state, _MACRO));
+    rgblight_set_layer_state(1, layer_state_cmp(state, _NUM));
+    rgblight_set_layer_state(2, layer_state_cmp(state, _SYM_NAV));
+    rgblight_set_layer_state(3, layer_state_cmp(state, _SYM_NAV));
+    rgblight_set_layer_state(4, layer_state_cmp(state, _MEDIA_MOUSE));
+    rgblight_set_layer_state(5, layer_state_cmp(state, _MEDIA_MOUSE));
+    rgblight_set_layer_state(6, layer_state_cmp(state, _GAMING));
+    rgblight_set_layer_state(7, layer_state_cmp(state, _MACRO));
     return state;
 }
 
@@ -457,25 +578,30 @@ void matrix_scan_user(void) {
     }
 }
 
-bool process_record_user(uint16_t keycode, keyrecord_t* record) {
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
-        // Macro flags:
         case JIGGLER:
             if (record->event.pressed) {
-                jiggle_macro = true;
-            } else {
-                jiggle_macro = false;
+                jiggle_macro = !jiggle_macro;
+                if (jiggle_macro) {
+                    // Turn on a light or provide feedback
+                    rgblight_setrgb(0x00, 0xFF, 0x00); // Green
+                } else {
+                    // Turn off the light or revert feedback
+                    rgblight_setrgb(0xFF, 0x00, 0x00); // Red
+                }
             }
-            break;
+            return false;
         case TURBO:
             if (record->event.pressed) {
-                turbo_macro = true;
-            } else {
-                turbo_macro = false;
+                turbo_macro = !turbo_macro;
+                if (turbo_macro) {
+                    rgblight_setrgb(0x00, 0x00, 0xFF); // Blue
+                } else {
+                    rgblight_setrgb(0xFF, 0x00, 0x00); // Red
+                }
             }
-            break;
-        default:
-            break;
+            return false;
     }
     return true;
 }
