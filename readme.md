@@ -14,7 +14,7 @@ My Keebio Iris Rev 8 custom keymap called "Reverie" -- a productivity-focused la
 
 ## Layer Architecture
 
-![Complete Keymap](assets/keymap.svg "Complete Reverie Keymap")
+![Complete Keymap](assets/keymap.png "Complete Reverie Keymap")
 
 ### QWERTY (Layer 0) - Purple
 

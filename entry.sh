@@ -61,44 +61,54 @@ convert_svg_to_png() {
 generate_keymap_visualizations() {
     log "Generating keymap visualizations..."
     mkdir -p "$ASSETS_DIR"
-    
-    # First, generate JSON keymap from QMK C keymap
+
+    # 1. Generate QMK keymap JSON from C file
     log "Converting QMK C keymap to JSON..."
     qmk c2json -kb keebio/iris/rev8 -km reverie -o /tmp/keymap.json
-    
-    # Parse the keymap with explicit layout
+
+    # 2. Parse JSON to a YAML file with only logical layers
+    log "Parsing logical layers from JSON..."
     keymap parse \
         -q /tmp/keymap.json \
-        -l LAYOUT \
-        -o /tmp/parsed_keymap.yaml
+        --layer-names QWERTY NUM SYM_NAV MEDIA_MOUSE GAMING MACRO \
+        -o /tmp/logical_layers.yaml
+
+    # 3. Manually construct a complete and valid keymap YAML
+    log "Constructing final keymap YAML..."
+    cat > /tmp/final_keymap.yaml << EOF
+layout:
+  qmk_keyboard: keebio/iris/rev8
+  layout_name: LAYOUT
+EOF
     
-    # Generate the complete keymap visualization with explicit layout
-    keymap draw \
-        -l LAYOUT \
-        /tmp/parsed_keymap.yaml \
+    # Extract only the layers section from logical_layers.yaml
+    sed -n '/^layers:/,$p' /tmp/logical_layers.yaml >> /tmp/final_keymap.yaml
+
+    # 4. Draw the keymap using the final YAML and styling from the config file
+    log "Drawing complete keymap visualization..."
+    keymap -c "$CUSTOM_KEYMAP_DIR/keymap-drawer-config.yaml" draw \
+        -k keebio/iris/rev8 -l LAYOUT \
+        /tmp/final_keymap.yaml \
         -o "$ASSETS_DIR/keymap.svg"
-    
+
     # Convert to PNG
     convert_svg_to_png "$ASSETS_DIR/keymap.svg" "$ASSETS_DIR/keymap.png"
-    
+
     # Generate individual layer images
+    log "Drawing individual layer visualizations..."
     local layers="QWERTY NUM SYM_NAV MEDIA_MOUSE GAMING MACRO"
-    local layer_index=0
-    
     for layer_name in $layers; do
         local layer_svg="$ASSETS_DIR/keymap-${layer_name,,}.svg"
         local layer_png="$ASSETS_DIR/keymap-${layer_name,,}-layer.png"
-        
-        keymap draw \
-            -l LAYOUT \
-            -l "$layer_index" \
-            /tmp/parsed_keymap.yaml \
+
+        keymap -c "$CUSTOM_KEYMAP_DIR/keymap-drawer-config.yaml" draw \
+            -k keebio/iris/rev8 -l LAYOUT --layers "$layer_name" \
+            /tmp/final_keymap.yaml \
             -o "$layer_svg"
-        
+
         convert_svg_to_png "$layer_svg" "$layer_png"
-        layer_index=$((layer_index + 1))
     done
-    
+
     log "Keymap visualizations generated in $ASSETS_DIR/"
 }
 

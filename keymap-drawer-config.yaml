@@ -1,16 +1,4 @@
-# Keymap-drawer configuration for Iris Rev 8 keymap
-# This configuration optimizes the output for your specific layout and RGB colors
-
-parse_config:
-  # Custom layer names for better display
-  layer_legend_map:
-    "0": "QWERTY"
-    "1": "NUM" 
-    "2": "SYM/NAV"
-    "3": "MEDIA/MOUSE"
-    "4": "GAMING"
-    "5": "MACRO"
-
+# Styling and drawing configuration for keymap-drawer
 draw_config:
   # Key dimensions (adjust for aesthetics)
   key_h: 50
