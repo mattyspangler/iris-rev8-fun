@@ -66,14 +66,15 @@ generate_keymap_visualizations() {
     log "Converting QMK C keymap to JSON..."
     qmk c2json -kb keebio/iris/rev8 -km reverie -o /tmp/keymap.json
     
-    # Parse the keymap
+    # Parse the keymap with explicit layout
     keymap parse \
         -q /tmp/keymap.json \
+        -l LAYOUT \
         -o /tmp/parsed_keymap.yaml
     
-    # Generate the complete keymap visualization
+    # Generate the complete keymap visualization with explicit layout
     keymap draw \
-        -c "$CUSTOM_KEYMAP_DIR/keymap-drawer-config.yaml" \
+        -l LAYOUT \
         /tmp/parsed_keymap.yaml \
         -o "$ASSETS_DIR/keymap.svg"
     
@@ -89,7 +90,7 @@ generate_keymap_visualizations() {
         local layer_png="$ASSETS_DIR/keymap-${layer_name,,}-layer.png"
         
         keymap draw \
-            -c "$CUSTOM_KEYMAP_DIR/keymap-drawer-config.yaml" \
+            -l LAYOUT \
             -l "$layer_index" \
             /tmp/parsed_keymap.yaml \
             -o "$layer_svg"
