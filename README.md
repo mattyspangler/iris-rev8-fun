@@ -1,6 +1,6 @@
 # Iris Reverie
 
-My Keebio Iris Rev 8 custom keymap called "Reverie" -- a productivity-focused layout with sophisticated RGB lighting and tap dance functionality.
+My Keebio Iris Rev 8 custom keymap called "Reverie" -- a productivity-focused layout with RGB lighting and tap dance functionality.
 
 ![My Iris Rev 8](keyboard-pic.jpg "My Iris Rev 8")
 
@@ -117,7 +117,3 @@ My Keebio Iris Rev 8 custom keymap called "Reverie" -- a productivity-focused la
 - Ensure both halves are in bootloader mode (reset button double-press)
 - Try different USB cables if the drives don't appear
 - Verify the UF2 file size
-
-## License
-
-This keymap is licensed under the GPL-2.0-or-later license. 

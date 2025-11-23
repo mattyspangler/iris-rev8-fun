@@ -1,4 +1,8 @@
 # Styling and drawing configuration for keymap-drawer
+# IMPORTANT: When adding new layers, you must:
+# 1. Add background color rule: svg.keymap g.layer-NEWLAYER rect.key { fill: #color; stroke: #color; }
+# 2. Add text contrast rule: svg.keymap g.layer-NEWLAYER text { fill: #ffffff; }
+# Layer names must match enum names from keymap.c (without underscore prefix)
 draw_config:
   # Key dimensions (adjust for aesthetics)
   key_h: 50
@@ -14,6 +18,7 @@ draw_config:
   footer_text: "Iris Rev 8 - reverie"
   
   # Custom CSS styling for layer-specific background colors matching RGB lighting
+  # Layer names must match enum names from keymap.c (without underscore prefix)
   svg_extra_style: |
     svg.keymap g.layer-BASE rect.key { fill: #9300ff !important; stroke: #9300ff !important; } /* Star Platinum Purple */ 
     svg.keymap g.layer-FUNCTION rect.key { fill: #0fee00 !important; stroke: #0fee00 !important; }  /* Squeeze Toy Alien */ 
@@ -30,14 +35,17 @@ draw_config:
     }
     
     /* Better contrast for text on colored backgrounds */
+    /* Add new layers here: svg.keymap g.layer-NEWLAYER text { fill: #000000; } */
     svg.keymap g.layer-BASE text,
+    svg.keymap g.layer-NUMBERS text {
+      fill: #ffffff !important;
+    }
     svg.keymap g.layer-FUNCTION text,
-    svg.keymap g.layer-NUMBERS text,
     svg.keymap g.layer-SYMBOLS text,
     svg.keymap g.layer-SYSTEM text,
     svg.keymap g.layer-GAMING text,
     svg.keymap g.layer-MACRO text {
-      fill: #ffffff !important;
+      fill: #000000 !important;
     }
     
     /* Held/accent keys */
