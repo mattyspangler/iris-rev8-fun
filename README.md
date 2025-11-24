@@ -22,13 +22,18 @@ My Keebio Iris Rev 8 custom keymap called "Reverie" -- a productivity-focused la
 
 #### Tap Dance Functions
 - **`~` (grave)**: Single tap for `~`, double tap for `Esc`
-- **`1`**: Single tap for `1`, double-hold to switch to NUM layer
-- **`2`**: Single tap for `2`, double-hold to switch to NUM layer  
-- **`3`**: Single tap for `3`, double-hold to switch to SYS layer
-- **`4`**: Single tap for `4`, double-hold to switch to GAMING layer
-- **`5`**: Single tap for `5`, double-hold to switch to MACRO layer
+- **`1`**: Single tap for `1`, double-tap and hold for FUNCTION layer
+- **`2`**: Single tap for `2`, double-tap and hold for NUMBERS layer  
+- **`3`**: Single tap for `3`, double-tap and hold for SYSTEM layer
+- **`4`**: Single tap for `4`, double-tap and hold for GAMING layer
+- **`5`**: Single tap for `5`, double-tap and hold for MACRO layer
+- **`6`**: Single tap for `6`, double-tap and hold for BASE layer
+- **`9`**: Single tap for `9`, double-tap and hold for minus (-)
+- **`0`**: Single tap for `0`, double-tap and hold for equals (=)
+- **`Enter`**: Single tap for Enter, double-tap and hold for backslash (\)
+- **`Backslash`**: Single tap for backslash (\), double-tap and hold for right shift
 - **`Left Shift`**: Single tap for shift, double tap for `Caps Lock`
-- **`Left Ctrl`**: Single tap for ctrl, double tap for `Esc`
+- **`Left Ctrl`**: Single tap for ctrl, double-tap and hold for GAMING layer
 - **`Left GUI`**: Single tap for GUI, double tap for `Space`
 - **`Right Alt`**: Single tap for Alt, double tap for `Enter`
 
@@ -36,42 +41,52 @@ My Keebio Iris Rev 8 custom keymap called "Reverie" -- a productivity-focused la
 - **`[` (left bracket)**: Hold for temporary NUM layer access
 - **`]` (right bracket)**: Hold for temporary NUM layer access
 
-### NUM (Layer 1) - Red
+### NUMBERS (Layer 1) - Green
 
-- **Top row**: F1-F12 function keys
-- **Right side**: Full numpad layout with mathematical operators
-- **Navigation arrows**: Integrated into the main typing area
-- **Mouse keys**: Basic mouse controls (clicks and movement)
+**Numpad and F-key layout:**
 
-### SYM (Layer 2) - Azure
+- **Top row**: F10-F12, Print Screen, Scroll Lock
+- **Right side**: Full numpad layout with mathematical operators (+, -, *, /)
+- **Navigation**: Page Up/Down, Home, End, Insert, Delete
+- **Function keys**: F1-F9 in left side cluster
 
-- **Left side**: Symbol characters ( ! @ # $ % ^ & * ( ) )
-- **Right side**: Navigation cluster (arrows, home, end, page up/down, insert, delete)
-- **Brackets**: Programming brackets ( [ ] { } < > ) and additional symbols
+### SYMBOLS (Layer 2) - Red
+
+**Symbols and navigation:**
+
+- **Right side**: Symbol characters and brackets
+- **Navigation**: Arrow keys (up, down, left, right)
+- **Media controls**: Volume down, mute, volume up in thumb cluster
 
 
-### SYS (Layer 3) - Orange/Yellow
+### SYSTEM (Layer 3) - Yellow
 
-- **Mouse controls**: Precise mouse movement, scrolling (wheel up/down), and all mouse buttons
-- **Media keys**: Play/pause, next/previous track, volume controls
-- **System controls**: Screen capture, application switching
+**System administration and media:**
+
+- **Mouse controls**: Precise mouse movement and scrolling
+- **My Computer**: Quick access to file explorer
+- **Media controls**: Previous track, play/pause, next track
+- **Audio controls**: Volume down, mute, volume up
+- **Browser navigation**: Media keys double-tap for browser back/home/forward
 
 ### GAMING (Layer 4) - Blue
 
 **Dedicated gaming layout:**
 
-- **Clean WASD**: Uncluttered gaming controls with standard FPS layout
-- **Quick access**: Essential gaming functions without interference
-- **Stable layout**: No complex modifiers that could interfere with gaming
+- **Clean WASD**: Standard FPS gaming controls
+- **Number row**: Standard 1-0 number keys
+- **Punctuation**: Standard punctuation layout
+- **Minimal interference**: No complex modifiers during gaming
 
-### MACRO (Layer 5) - White
+### MACRO (Layer 5) - Pink
 
-**Custom macros and utilities:**
+**Macros, RGB, and music:**
 
-- **TURBO**: Rapid-fire macro for gaming or testing
-- **JIGGLER**: Mouse movement simulator for preventing screen savers
-- **System utilities**: Reset (QK_BOOT) and EEPROM clear (EE_CLR)
-- **Layer switching**: Quick access to GAMING and QWERTY layers
+- **Dynamic Macros**: Record/play macros 1 and 2
+- **Music Controls**: Music on/off, next track, toggle
+- **RGB Controls**: Brightness up/down, toggle, mode forward
+- **Auto Shift**: AS_TOGG for automatic capitalization
+- **Layer Navigation**: Quick return to BASE and GAMING layers
 
 ## Build Instructions
 

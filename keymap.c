@@ -74,20 +74,20 @@ enum iris_layers {
 #define GUI_DWN LGUI(KC_DOWN) // jump to the bottom of the document
 #define GUI_UP LGUI(KC_UP) // jump to the top of the document
 
-// Tap dance declarations - based on Moonlander implementation
+// Tap dance declarations
 enum tap_dance_codes {
     TD_LSFT_CAPS, // Left Shift or Caps Lock
     TD_GRV_ESC,   // Grave or Escape
     TD_RALT_ENT,  // Right Alt or Enter
     TD_LCTL_ESC,  // Left Control or Escape - DEPRECATED
     TD_LSPC,      // Left GUI or Space
-    // Moonlander-style number tap dances (DANCE_0-4 equivalent)
+    // Number tap dances with layer switching
     TD_1_FN,      // 1 tap, double-hold to switch to FUNCTION layer
     TD_2_NUM,     // 2 tap, double-hold to switch to NUMBERS layer
     TD_3_SYS,     // 3 tap, double-hold to switch to SYSTEM layer
     TD_4_GAME,    // 4 tap, double-hold to switch to GAMING layer
     TD_5_MACRO,   // 5 tap, double-hold to switch to MACRO layer
-    // Additional Moonlander utility tap dances where space allows
+    // Additional utility tap dances
     TD_6_BS,      // 6 tap, double-tap and hold for base layer
     TD_9_MIN,     // 9 tap, double-tap and hold for minus
     TD_0_EQ,      // 0 tap, double-tap and hold for equals
@@ -131,7 +131,7 @@ uint8_t get_tap_dance_step(tap_dance_state_t *state) {
     return MORE_TAPS;
 }
 
-// Moonlander-style tap dance for number 1 - tap for 1, double-hold for FUNCTION layer
+// Tap dance for number 1 - tap for 1, double-hold for FUNCTION layer
 void on_dance_1(tap_dance_state_t *state, void *user_data);
 void dance_1_fn_finished(tap_dance_state_t *state, void *user_data);
 void dance_1_fn_reset(tap_dance_state_t *state, void *user_data);
@@ -167,7 +167,7 @@ void dance_1_fn_reset(tap_dance_state_t *state, void *user_data) {
     tap_state[0].step = 0;
 }
 
-// Moonlander-style tap dance for number 2 - tap for 2, double-hold for NUMBERS layer
+// Tap dance for number 2 - tap for 2, double-hold for NUMBERS layer
 void on_dance_2(tap_dance_state_t *state, void *user_data);
 void dance_2_num_finished(tap_dance_state_t *state, void *user_data);
 void dance_2_num_reset(tap_dance_state_t *state, void *user_data);
@@ -203,7 +203,7 @@ void dance_2_num_reset(tap_dance_state_t *state, void *user_data) {
     tap_state[1].step = 0;
 }
 
-// Moonlander-style tap dance for number 3 - tap for 3, double-hold for SYSTEM layer
+// Tap dance for number 3 - tap for 3, double-hold for SYSTEM layer
 void on_dance_3(tap_dance_state_t *state, void *user_data);
 void dance_3_sys_finished(tap_dance_state_t *state, void *user_data);
 void dance_3_sys_reset(tap_dance_state_t *state, void *user_data);
@@ -239,7 +239,7 @@ void dance_3_sys_reset(tap_dance_state_t *state, void *user_data) {
     tap_state[2].step = 0;
 }
 
-// Moonlander-style tap dance for number 4 - tap for 4, double-hold for GAMING layer
+// Tap dance for number 4 - tap for 4, double-hold for GAMING layer
 void on_dance_4(tap_dance_state_t *state, void *user_data);
 void dance_4_game_finished(tap_dance_state_t *state, void *user_data);
 void dance_4_game_reset(tap_dance_state_t *state, void *user_data);
@@ -275,7 +275,7 @@ void dance_4_game_reset(tap_dance_state_t *state, void *user_data) {
     tap_state[3].step = 0;
 }
 
-// Moonlander-style tap dance for number 5 - tap for 5, double-hold for MACRO layer
+// Tap dance for number 5 - tap for 5, double-hold for MACRO layer
 void on_dance_5(tap_dance_state_t *state, void *user_data);
 void dance_5_macro_finished(tap_dance_state_t *state, void *user_data);
 void dance_5_macro_reset(tap_dance_state_t *state, void *user_data);
@@ -311,7 +311,7 @@ void dance_5_macro_reset(tap_dance_state_t *state, void *user_data) {
     tap_state[4].step = 0;
 }
 
-// Moonlander-style tap dance for number 6 - tap for 6, double-hold for backspace functionality
+// Tap dance for number 6 - tap for 6, double-hold for backspace functionality
 void on_dance_6(tap_dance_state_t *state, void *user_data);
 void dance_6_bsp_finished(tap_dance_state_t *state, void *user_data);
 void dance_6_bsp_reset(tap_dance_state_t *state, void *user_data);
@@ -348,7 +348,7 @@ void dance_6_bsp_reset(tap_dance_state_t *state, void *user_data) {
     tap_state[5].step = 0;
 }
 
-// Moonlander-style tap dance for 9/Minus - tap for 9, double-tap and hold for minus
+// Tap dance for 9/Minus - tap for 9, double-tap and hold for minus
 void on_dance_9(tap_dance_state_t *state, void *user_data);
 void dance_9_ent_finished(tap_dance_state_t *state, void *user_data);
 void dance_9_ent_reset(tap_dance_state_t *state, void *user_data);
@@ -754,15 +754,15 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
     [_MACRO] = LAYOUT(
     //┌───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────┐                                        ┌───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────┐
-       _______,          _______,        _______,        _______,        _______,        TURBO,                                                   _______,        _______,        _______,        _______,        QK_BOOT,        EE_CLR,
+       _______,          _______,        _______,        _______,        _______,        _______,                                                 _______,        _______,        _______,        _______,        _______,        _______,
     //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤                                        ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
        _______,          _______,        _______,        _______,        _______,        _______,                                                 _______,        _______,        _______,        _______,        _______,        _______,
     //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤                                        ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
-       _______,          _______,        _______,        _______,        _______,        _______,                                                 _______,        JIGGLER,        _______,        _______,        _______,        _______,
+       AS_TOGG,          _______,        _______,        _______,        _______,        _______,                                                 _______,        _______,        _______,        _______,        _______,        _______,
     //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┐        ┌───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
-      TD(TD_LCTL_BASE),  _______,        _______,        _______,        _______,        _______,        _______,                 _______,        _______,        _______,        _______,        _______,        _______,        _______,
+      TD(TD_LCTL_BASE),  MU_NEXT,        MU_TOGG,        QK_MUSIC_OFF,   QK_MUSIC_ON,    TO(_GAMING),                                            TO(_BASE),     RGB_VAI,        RGB_VAD,        RGB_TOG,        RGB_MODE_FORWARD,_______,
     //└───────────────┴───────────────┴───────────────┴───────────────┼───────────────┼───────────────┼───────────────┘        └───────────────┼───────────────┼───────────────┼───────────────┴───────────────┴───────────────┴───────────────┘
-                                                                       KC_LGUI,        MO_FN,          KC_SPC,                  KC_SPC,         MO_NU,          KC_RCTL
+                                                                       DM_REC2,        DM_RSTP,        DM_PLY2,                 DM_REC1,        DM_RSTP,        DM_PLY1
     //                                                                └───────────────┴───────────────┴───────────────┘        └───────────────┴───────────────┴───────────────┘
     )
 };
