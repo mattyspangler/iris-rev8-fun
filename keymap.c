@@ -96,6 +96,8 @@ enum tap_dance_codes {
     TD_MEDIA_PLAY, // Media Play/Pause tap, double-tap for browser home
     TD_MEDIA_NEXT, // Media Next tap, double-tap for browser forward
     TD_LCTL_BASE, // Left Control tap, double-hold to return to base layer
+    TD_LGUI_ALT,   // Left GUI or double-hold for left alt
+    TD_RALT_CTRL,  // Right Alt or double-hold for right control
 };
 
 // Helper functions for advanced tap dance
@@ -116,7 +118,7 @@ enum {
 // Forward declaration
 tap_dance_action_t tap_dance_actions[];
 
-#define TD_COUNT 15
+#define TD_COUNT 17
 static tap_state_t tap_state[TD_COUNT];
 
 uint8_t get_tap_dance_step(tap_dance_state_t *state);
@@ -649,6 +651,76 @@ void dance_media_next_reset(tap_dance_state_t *state, void *user_data) {
     tap_state[14].step = 0;
 }
 
+// Left GUI or Left Alt tap dance functions
+void on_dance_lgui_alt(tap_dance_state_t *state, void *user_data) {
+    if (state->count == 3) {
+        tap_code16(KC_LGUI);
+        tap_code16(KC_LGUI);
+        tap_code16(KC_LGUI);
+    }
+    if (state->count > 3) {
+        tap_code16(KC_LGUI);
+    }
+}
+
+void dance_lgui_alt_finished(tap_dance_state_t *state, void *user_data) {
+    tap_state[15].step = get_tap_dance_step(state);
+    switch (tap_state[15].step) {
+        case SINGLE_TAP: register_code16(KC_LGUI); break;
+        case SINGLE_HOLD: register_code16(KC_LGUI); break;
+        case DOUBLE_TAP: register_code16(KC_LGUI); register_code16(KC_LGUI); break;
+        case DOUBLE_HOLD: register_code16(KC_LALT); break;
+        case DOUBLE_SINGLE_TAP: tap_code16(KC_LGUI); register_code16(KC_LGUI);
+    }
+}
+
+void dance_lgui_alt_reset(tap_dance_state_t *state, void *user_data) {
+    wait_ms(10);
+    switch (tap_state[15].step) {
+        case SINGLE_TAP: unregister_code16(KC_LGUI); break;
+        case SINGLE_HOLD: unregister_code16(KC_LGUI); break;
+        case DOUBLE_TAP: unregister_code16(KC_LGUI); break;
+        case DOUBLE_HOLD: unregister_code16(KC_LALT); break;
+        case DOUBLE_SINGLE_TAP: unregister_code16(KC_LGUI); break;
+    }
+    tap_state[15].step = 0;
+}
+
+// Right Alt or Right Control tap dance functions
+void on_dance_ralt_ctrl(tap_dance_state_t *state, void *user_data) {
+    if (state->count == 3) {
+        tap_code16(KC_RALT);
+        tap_code16(KC_RALT);
+        tap_code16(KC_RALT);
+    }
+    if (state->count > 3) {
+        tap_code16(KC_RALT);
+    }
+}
+
+void dance_ralt_ctrl_finished(tap_dance_state_t *state, void *user_data) {
+    tap_state[16].step = get_tap_dance_step(state);
+    switch (tap_state[16].step) {
+        case SINGLE_TAP: register_code16(KC_RALT); break;
+        case SINGLE_HOLD: register_code16(KC_RALT); break;
+        case DOUBLE_TAP: register_code16(KC_RALT); register_code16(KC_RALT); break;
+        case DOUBLE_HOLD: register_code16(KC_RCTL); break;
+        case DOUBLE_SINGLE_TAP: tap_code16(KC_RALT); register_code16(KC_RALT);
+    }
+}
+
+void dance_ralt_ctrl_reset(tap_dance_state_t *state, void *user_data) {
+    wait_ms(10);
+    switch (tap_state[16].step) {
+        case SINGLE_TAP: unregister_code16(KC_RALT); break;
+        case SINGLE_HOLD: unregister_code16(KC_RALT); break;
+        case DOUBLE_TAP: unregister_code16(KC_RALT); break;
+        case DOUBLE_HOLD: unregister_code16(KC_RCTL); break;
+        case DOUBLE_SINGLE_TAP: unregister_code16(KC_RALT); break;
+    }
+    tap_state[16].step = 0;
+}
+
 tap_dance_action_t tap_dance_actions[] = {
     [TD_LSFT_CAPS] = ACTION_TAP_DANCE_DOUBLE(KC_LSFT, KC_CAPS),
     [TD_GRV_ESC]   = ACTION_TAP_DANCE_DOUBLE(KC_GRV, KC_ESC),
@@ -668,6 +740,8 @@ tap_dance_action_t tap_dance_actions[] = {
     [TD_MEDIA_PLAY] = ACTION_TAP_DANCE_FN_ADVANCED(on_dance_media_play, dance_media_play_finished, dance_media_play_reset),  // Media Play/Pause tap, double-tap for browser home
     [TD_MEDIA_NEXT] = ACTION_TAP_DANCE_FN_ADVANCED(on_dance_media_next, dance_media_next_finished, dance_media_next_reset),  // Media Next tap, double-tap for browser forward
     [TD_LCTL_BASE] = ACTION_TAP_DANCE_FN_ADVANCED(on_dance_lctl_base, dance_lctl_base_finished, dance_lctl_base_reset),  // LCTL tap, double-hold for BASE layer
+    [TD_LGUI_ALT] = ACTION_TAP_DANCE_FN_ADVANCED(on_dance_lgui_alt, dance_lgui_alt_finished, dance_lgui_alt_reset),    // LGUI tap, double-hold for left alt
+    [TD_RALT_CTRL] = ACTION_TAP_DANCE_FN_ADVANCED(on_dance_ralt_ctrl, dance_ralt_ctrl_finished, dance_ralt_ctrl_reset),  // RALT tap, double-hold for right control
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -681,13 +755,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┐        ┌───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
       TD(TD_LCTL_GAME),KC_Z,           KC_X,           KC_C,           KC_V,           KC_B,           KC_LBRC,                 KC_RBRC,        KC_N,           KC_M,           KC_COMM,        KC_DOT,         KC_SLSH,        TD(TD_BSLS_RSFT),
     //└───────────────┴───────────────┴───────────────┴───────────────┼───────────────┼───────────────┼───────────────┘        └───────────────┼───────────────┼───────────────┼───────────────┴───────────────┴───────────────┴───────────────┘
-                                                                       KC_LGUI,        MO_FN,          KC_SPC,                  KC_SPC,         MO_NU,          KC_RALT
+                                                                       TD(TD_LGUI_ALT),MO_FN,          KC_SPC,                  KC_SPC,         MO_NU,          TD(TD_RALT_CTRL)
     //                                                                └───────────────┴───────────────┴───────────────┘        └───────────────┴───────────────┴───────────────┘
     ),
 
     [_FUNCTION] = LAYOUT(
     //┌───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────┐                                        ┌───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────┐
-       KC_ESC,         KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRNS,                                                 KC_TRNS,        KC_TRNS,        KC_TRNS,          KC_MINS,      KC_EQL,         KC_DELETE,
+       KC_ESC,         KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRNS,                                                 KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_MINS,        KC_EQL,         KC_DELETE,
     //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤                                        ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
        KC_TRNS,        KC_TRNS,        KC_TRNS,        MS_UP,          KC_TRNS,        KC_TRNS,                                                 KC_TRNS,        KC_TRNS,        KC_UP,          KC_LBRC,        KC_RBRC,        KC_TRNS,
     //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤                                        ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
@@ -723,7 +797,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┐        ┌───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
       TD(TD_LCTL_BASE),KC_Z,           KC_X,           KC_C,           KC_V,           KC_B,           KC_LBRC,                 KC_RBRC,        KC_N,           KC_M,           KC_COMM,        KC_DOT,         KC_SLSH,       TD(TD_BSLS_RSFT),
     //└───────────────┴───────────────┴───────────────┴───────────────┼───────────────┼───────────────┼───────────────┘        └───────────────┼───────────────┼───────────────┼───────────────┴───────────────┴───────────────┴───────────────┘
-                                                                       KC_LGUI,        MO_FN,          KC_SPC,                  KC_SPC,         MO_NU,          KC_RALT
+                                                                       TD(TD_LGUI_ALT),MO_FN,          KC_SPC,                  KC_SPC,         MO_NU,          TD(TD_RALT_CTRL)
     //                                                                └───────────────┴───────────────┴───────────────┘        └───────────────┴───────────────┴───────────────┘
     ),
 
@@ -751,7 +825,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     //├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┐        ┌───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
        KC_LCTL,        KC_Z,           KC_X,           KC_C,           KC_V,           KC_B,           KC_LBRC,                 KC_RBRC,        KC_N,           KC_M,           KC_COMM,        KC_DOT,         KC_SLSH,        KC_ENT,
     //└───────────────┴───────────────┴───────────────┴───────────────┼───────────────┼───────────────┼───────────────┘        └───────────────┼───────────────┼───────────────┼───────────────┴───────────────┴───────────────┴───────────────┘
-                                                                       KC_LGUI,       TD(TD_LCTL_BASE),KC_SPC,                  KC_SPC,         MO_NU,          KC_RALT
+                                                                      TD(TD_LGUI_ALT),TD(TD_LCTL_BASE),KC_SPC,                  KC_SPC,         MO_NU,          TD(TD_RALT_CTRL)
     //                                                                └───────────────┴───────────────┴───────────────┘        └───────────────┴───────────────┴───────────────┘
     ),
 
